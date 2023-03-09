@@ -1,19 +1,20 @@
 require('dotenv').config();
-const connectToDb = require('./Db/Connection')
+require('express-async-errors');
 const express = require('express');
-const router = require('./Routes/RegRoutes');
 const app = express();
+const runApp = require('./Db/Connection')
+const {router} = require('./Routes/RegRoutes');
 const port = process.env.PORT || 3000;
+const notFoundRoute = require('./middleware/notFound');
+const errorHandler = require('./middleware/ErrorMiddleware');
 
 
 app.use(express.json())
 
+app.use('/api/v1/auth', router)
 
-app.use('/registation', router)
+// Error Handlers
+app.use(notFoundRoute)
+app.use(errorHandler)
 
-
-
-app.listen(port, () => {
- connectToDb()
- console.log(`Running on ${port}`);
-})
+runApp(app, port);
