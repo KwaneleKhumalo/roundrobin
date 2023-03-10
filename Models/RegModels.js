@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 const newUser = new Schema({
   firstName: {
@@ -29,6 +27,8 @@ const newUser = new Schema({
     type: String,
     required: [true, "This field is required"],
     trim: true,
+    unique: true,
+    dropDups: true
   },
 
   password: {
@@ -40,29 +40,4 @@ const newUser = new Schema({
   superAdmin: { type: Boolean, default: false },
 });
 
-//hash Password
-newUser.pre("save", async function (next) {
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-//Generate Token
-newUser.methods.createJWT = function () {
-  return jwt.sign(
-    {
-      userID: this._id,
-      name: this.firstName,
-    },
-    "jwtSecrete",
-    {
-      expiresIn: "30d",
-    }
-  );
-};
-
-newUser.methods.comparePasswords = async function (userPassword) {
-  const isMatched = await bcrypt.compare(userPassword, this.password)
-  return isMatched
-}
 module.exports = mongoose.model("newUser", newUser);
